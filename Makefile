@@ -18,6 +18,7 @@ install-deps: ## Установить инструменты разработк�
 	- go get github.com/go-chi/chi/v5
 	- go get github.com/redis/go-redis/v9
 	- go get github.com/kelseyhightower/envconfig
+	- go get github.com/rs/zerolog
 
 .PHONY: generate
 generate:
