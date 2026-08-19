@@ -29,5 +29,5 @@ func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("http://localhost:8080/" + id))
+	w.Write([]byte(strings.TrimRight(h.baseURL, "/") + "/" + id))
 }

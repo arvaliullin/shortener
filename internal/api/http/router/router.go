@@ -18,7 +18,7 @@ func New(cfg *config.Config) http.Handler {
 
 	repo := redis.NewURLRepository(cfg.RedisAddr)
 	svc := services.NewURLService(repo)
-	urlHandler := handlers.NewURLHandler(svc)
+	urlHandler := handlers.NewURLHandler(svc, cfg.BaseURL)
 
 	router.Post("/", urlHandler.Shorten)
 	router.Get("/{id}", urlHandler.Redirect)

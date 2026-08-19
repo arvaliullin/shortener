@@ -96,7 +96,7 @@ func TestURLHandler_Shorten(t *testing.T) {
 				tt.setupMock(svc)
 			}
 
-			h := handlers.NewURLHandler(svc)
+			h := handlers.NewURLHandler(svc, "http://localhost:8080")
 			req := httptest.NewRequest(http.MethodPost, "/", tt.body)
 			rec := httptest.NewRecorder()
 

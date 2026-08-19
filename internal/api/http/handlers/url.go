@@ -6,10 +6,12 @@ import (
 
 type URLHandler struct {
 	urlService ports.URLService
+	baseURL    string
 }
 
-func NewURLHandler(urlService ports.URLService) *URLHandler {
+func NewURLHandler(urlService ports.URLService, baseURL string) *URLHandler {
 	return &URLHandler{
 		urlService: urlService,
+		baseURL:    baseURL,
 	}
 }

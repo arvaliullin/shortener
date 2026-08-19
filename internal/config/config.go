@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	HTTPAddr  string `envconfig:"HTTP_ADDR" default:":8080"`
-	RedisAddr string `envconfig:"REDIS_ADDR" required:"true"`
+	ServerAddress string `envconfig:"SERVER_ADDRESS" default:":8080"`
+	BaseURL       string `envconfig:"BASE_URL" default:"http://localhost:8080"`
+	RedisAddr     string `envconfig:"REDIS_ADDR" required:"true"`
 }
 
 func Load() (*Config, error) {

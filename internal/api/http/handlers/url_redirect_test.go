@@ -72,7 +72,7 @@ func TestURLHandler_Redirect(t *testing.T) {
 				tt.setupMock(svc)
 			}
 
-			h := handlers.NewURLHandler(svc)
+			h := handlers.NewURLHandler(svc, "http://localhost:8080")
 			rec := httptest.NewRecorder()
 
 			h.Redirect(rec, tt.req)

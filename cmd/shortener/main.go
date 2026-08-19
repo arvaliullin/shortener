@@ -20,7 +20,7 @@ func main() {
 	defer cancel()
 
 	server := &http.Server{
-		Addr:    cfg.HTTPAddr,
+		Addr:    cfg.ServerAddress,
 		Handler: router.New(cfg),
 	}
 
