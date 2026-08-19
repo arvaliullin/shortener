@@ -1,33 +1,32 @@
 package handlers
 
 import (
-	"io"
+	"encoding/json"
 	"net/http"
 	"strings"
+
+	"github.com/arvaliullin/shortener/internal/api/http/dto"
 )
 
 func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
+	var req dto.ShortenRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
 
-	body, err := io.ReadAll(r.Body)
+	if !req.IsValid() {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.urlService.Shorten(r.Context(), strings.TrimSpace(req.URL))
 	if err != nil {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 
-	originalURL := strings.TrimSpace(string(body))
-	if originalURL == "" {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-
-	id, err := h.urlService.Shorten(r.Context(), originalURL)
-	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(strings.TrimRight(h.baseURL, "/") + "/" + id))
+	json.NewEncoder(w).Encode(dto.NewShortenResponse(h.baseURL, id))
 }

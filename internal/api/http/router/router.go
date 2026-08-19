@@ -23,7 +23,7 @@ func New(cfg *config.Config, logger zerolog.Logger) http.Handler {
 	svc := services.NewURLService(repo)
 	urlHandler := handlers.NewURLHandler(svc, cfg.BaseURL)
 
-	router.Post("/", urlHandler.Shorten)
+	router.Post("/api/shorten", urlHandler.Shorten)
 	router.Get("/{id}", urlHandler.Redirect)
 
 	return router

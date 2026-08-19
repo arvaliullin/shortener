@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/arvaliullin/shortener/internal/api/http/dto"
 	"github.com/arvaliullin/shortener/internal/api/http/handlers"
 	"github.com/arvaliullin/shortener/internal/core/ports/mocks"
 	"github.com/stretchr/testify/require"
@@ -28,32 +30,33 @@ func TestURLHandler_Shorten(t *testing.T) {
 		body            io.Reader
 		setupMock       func(m *mocks.MockURLService)
 		wantStatus      int
+		wantResult      string
 		wantBody        string
 		wantContentType string
 	}{
 		{
 			name: "success",
-			body: strings.NewReader("https://practicum.yandex.ru/"),
+			body: strings.NewReader(`{"url":"https://practicum.yandex.ru/"}`),
 			setupMock: func(m *mocks.MockURLService) {
 				m.EXPECT().
 					Shorten(gomock.Any(), "https://practicum.yandex.ru/").
 					Return("abc12345", nil)
 			},
 			wantStatus:      http.StatusCreated,
-			wantBody:        "http://localhost:8080/abc12345",
-			wantContentType: "text/plain",
+			wantResult:      "http://localhost:8080/abc12345",
+			wantContentType: "application/json",
 		},
 		{
 			name: "trims surrounding whitespace",
-			body: strings.NewReader("  https://example.com  \n"),
+			body: strings.NewReader(`{"url":"  https://example.com  "}`),
 			setupMock: func(m *mocks.MockURLService) {
 				m.EXPECT().
 					Shorten(gomock.Any(), "https://example.com").
 					Return("abc12345", nil)
 			},
 			wantStatus:      http.StatusCreated,
-			wantBody:        "http://localhost:8080/abc12345",
-			wantContentType: "text/plain",
+			wantResult:      "http://localhost:8080/abc12345",
+			wantContentType: "application/json",
 		},
 		{
 			name:       "empty body",
@@ -75,7 +78,7 @@ func TestURLHandler_Shorten(t *testing.T) {
 		},
 		{
 			name: "service error",
-			body: strings.NewReader("https://practicum.yandex.ru/"),
+			body: strings.NewReader(`{"url":"https://practicum.yandex.ru/"}`),
 			setupMock: func(m *mocks.MockURLService) {
 				m.EXPECT().
 					Shorten(gomock.Any(), "https://practicum.yandex.ru/").
@@ -97,16 +100,22 @@ func TestURLHandler_Shorten(t *testing.T) {
 			}
 
 			h := handlers.NewURLHandler(svc, "http://localhost:8080")
-			req := httptest.NewRequest(http.MethodPost, "/", tt.body)
+			req := httptest.NewRequest(http.MethodPost, "/api/shorten", tt.body)
 			rec := httptest.NewRecorder()
 
 			h.Shorten(rec, req)
 
 			require.Equal(t, tt.wantStatus, rec.Code)
-			require.Equal(t, tt.wantBody, rec.Body.String())
 			if tt.wantContentType != "" {
 				require.Equal(t, tt.wantContentType, rec.Header().Get("Content-Type"))
 			}
+			if tt.wantResult != "" {
+				var resp dto.ShortenResponse
+				require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+				require.Equal(t, tt.wantResult, resp.Result)
+				return
+			}
+			require.Equal(t, tt.wantBody, rec.Body.String())
 		})
 	}
 }
