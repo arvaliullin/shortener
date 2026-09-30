@@ -23,6 +23,7 @@ func NewURLService(repository ports.URLRepository) *URLService {
 	}
 }
 
+// Shorten генерирует случайный ID для оригинального URL и сохраняет его в Redis
 func (service *URLService) Shorten(ctx context.Context, originalURL string) (string, error) {
 	id, err := generateID(idLength)
 	if err != nil {
@@ -36,10 +37,12 @@ func (service *URLService) Shorten(ctx context.Context, originalURL string) (str
 	return id, nil
 }
 
+// Resolve ищет оригинальный URL в Redis по ID
 func (service *URLService) Resolve(ctx context.Context, id string) (originalURL string, err error) {
 	return service.repository.Find(ctx, id)
 }
 
+// generateID генерирует случайный ID для оригинального URL
 func generateID(length int) (string, error) {
 	result := make([]byte, length)
 	max := big.NewInt(int64(len(idCharset)))

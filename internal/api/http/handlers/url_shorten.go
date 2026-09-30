@@ -8,6 +8,7 @@ import (
 	"github.com/arvaliullin/shortener/internal/api/http/dto"
 )
 
+// Shorten обрабатывает запрос на создание короткой ссылки
 func (h *URLHandler) Shorten(w http.ResponseWriter, r *http.Request) {
 	var req dto.ShortenRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
