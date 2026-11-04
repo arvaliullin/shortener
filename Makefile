@@ -19,6 +19,10 @@ web-install: ## Установить зависимости фронтенда
 web-dev: certs web-install ## Запустить фронтенд по HTTPS
 	npm --prefix web/shortener run dev
 
+.PHONY: sync
+sync: ## Установить зависимости Python
+	uv sync
+
 .PHONY: fmt
 fmt: ## Отформатировать Go-код
 	- go fmt ./...
