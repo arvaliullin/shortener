@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"math/big"
 
+	"github.com/arvaliullin/shortener/internal/core/domain"
 	"github.com/arvaliullin/shortener/internal/core/ports"
 )
 
@@ -40,6 +41,21 @@ func (service *URLService) Shorten(ctx context.Context, originalURL string) (str
 // Resolve ищет оригинальный URL в Redis по ID
 func (service *URLService) Resolve(ctx context.Context, id string) (originalURL string, err error) {
 	return service.repository.Find(ctx, id)
+}
+
+// List возвращает сохраненные короткие ссылки.
+func (service *URLService) List(ctx context.Context) ([]domain.ShortURL, error) {
+	return service.repository.List(ctx)
+}
+
+// Update меняет исходный адрес короткой ссылки.
+func (service *URLService) Update(ctx context.Context, id, originalURL string) error {
+	return service.repository.Update(ctx, id, originalURL)
+}
+
+// Delete удаляет короткую ссылку.
+func (service *URLService) Delete(ctx context.Context, id string) error {
+	return service.repository.Delete(ctx, id)
 }
 
 // generateID генерирует случайный ID для оригинального URL

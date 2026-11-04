@@ -1,38 +1,19 @@
 import { useState, type FormEvent } from 'react'
-import { Copy, CopyCheck, Moon, Sun } from '@gravity-ui/icons'
-import {
-  Alert,
-  Button,
-  Card,
-  Flex,
-  Icon,
-  Link,
-  Text,
-  TextInput,
-  useThemeValue,
-  type Theme,
-} from '@gravity-ui/uikit'
+import { Alert, Button, Card, ClipboardButton, Flex, Link, Text, TextInput } from '@gravity-ui/uikit'
+import { shortenUrl } from '../../api/urls'
 import { COPY_FAILED_MESSAGE, INVALID_URL_MESSAGE, SHORTEN_FAILED_MESSAGE } from '../../consts'
 import { httpUrl } from '../../utils/http-url'
-import { shortenUrl } from '../../utils/shorten-url'
 import './shorten-page.css'
 
-type ShortenPageProps = {
-  onThemeChange: (theme: Theme) => void
-}
-
-export default function ShortenPage({ onThemeChange }: ShortenPageProps) {
-  const themeValue = useThemeValue()
+export default function ShortenPage() {
   const [url, setUrl] = useState('')
   const [result, setResult] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [copied, setCopied] = useState(false)
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
-    setCopied(false)
 
     const original = httpUrl(url)
     if (!original) {
@@ -53,57 +34,36 @@ export default function ShortenPage({ onThemeChange }: ShortenPageProps) {
     }
   }
 
-  async function copyResult() {
-    try {
-      await navigator.clipboard.writeText(result)
-      setCopied(true)
-      setError('')
-    } catch {
-      setCopied(false)
-      setError(COPY_FAILED_MESSAGE)
-    }
-  }
-
-  function switchTheme() {
-    onThemeChange(themeValue === 'dark' ? 'light' : 'dark')
-  }
-
   return (
     <main className="shorten-page">
-      <Card className="shorten-page__panel" type="container" view="raised" size="l">
-        <Flex direction="column" gap="spacing-5">
-          <Flex alignItems="flex-start" justifyContent="space-between" gap="spacing-3" wrap>
-            <Flex direction="column" gap="spacing-1">
-              <Text variant="header-1">Сокращатель ссылок</Text>
-              <Text variant="body-1" color="secondary">
-                Вставьте длинный адрес и получите короткую ссылку
-              </Text>
-            </Flex>
-            <Button
-              view="flat"
-              size="l"
-              aria-label={themeValue === 'dark' ? 'Светлая тема' : 'Темная тема'}
-              onClick={switchTheme}
-            >
-              <Button.Icon>
-                <Icon data={themeValue === 'dark' ? Sun : Moon} />
-              </Button.Icon>
-            </Button>
+      <Card className="shorten-page__panel" type="container" view="raised" size="l" spacing={{ p: 6 }}>
+        <Flex direction="column" gap={6}>
+          <Flex direction="column" gap={1}>
+            <Text variant="header-1">Сокращатель ссылок</Text>
+            <Text variant="body-1" color="secondary">
+              Вставьте длинный адрес и получите короткую ссылку
+            </Text>
           </Flex>
 
           <form noValidate onSubmit={submit}>
-            <Flex direction="column" gap="spacing-3">
-              <TextInput
-                size="l"
-                type="url"
-                placeholder="https://example.com/very/long/path"
-                value={url}
-                onUpdate={setUrl}
-                hasClear
-                disabled={loading}
-                validationState={error && !result ? 'invalid' : undefined}
-                errorMessage={error && !result ? error : undefined}
-              />
+            <Flex direction="column" gap={4}>
+              <Flex direction="column" gap={2}>
+                <Text as="label" variant="body-2" htmlFor="shorten-url">
+                  Длинный адрес
+                </Text>
+                <TextInput
+                  id="shorten-url"
+                  size="l"
+                  type="url"
+                  placeholder="https://example.com/very/long/path"
+                  value={url}
+                  onUpdate={setUrl}
+                  hasClear
+                  disabled={loading}
+                  validationState={error && !result ? 'invalid' : undefined}
+                  errorMessage={error && !result ? error : undefined}
+                />
+              </Flex>
               <Button view="action" size="l" type="submit" loading={loading} width="max">
                 Сократить
               </Button>
@@ -111,21 +71,33 @@ export default function ShortenPage({ onThemeChange }: ShortenPageProps) {
           </form>
 
           {result ? (
-            <Flex direction="column" gap="spacing-3">
+            <Flex direction="column" gap={3}>
               <Text variant="subheader-2">Короткая ссылка</Text>
-              <Link className="shorten-page__link" href={result} target="_blank" rel="noreferrer">
-                {result}
-              </Link>
-              <Button view="outlined" size="l" onClick={copyResult}>
-                <Button.Icon>
-                  <Icon data={copied ? CopyCheck : Copy} />
-                </Button.Icon>
-                {copied ? 'Скопировано' : 'Скопировать'}
-              </Button>
+              <Flex alignItems="center" gap={2}>
+                <Flex grow={1} minWidth={0}>
+                  <Link className="shorten-page__link" href={result} target="_blank" rel="noreferrer">
+                    {result}
+                  </Link>
+                </Flex>
+                <Flex shrink={0}>
+                  <ClipboardButton
+                    text={result}
+                    view="outlined"
+                    size="l"
+                    onCopy={(_text, copied) => {
+                      setError(copied ? '' : COPY_FAILED_MESSAGE)
+                    }}
+                  >
+                    Скопировать
+                  </ClipboardButton>
+                </Flex>
+              </Flex>
             </Flex>
           ) : null}
 
-          {error && result ? <Alert theme="danger" title="Ошибка" message={error} /> : null}
+          {error && result ? (
+            <Alert theme="danger" title="Ошибка" message={error} onClose={() => setError('')} />
+          ) : null}
         </Flex>
       </Card>
     </main>

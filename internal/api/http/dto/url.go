@@ -21,3 +21,19 @@ type ShortenResponse struct {
 func NewShortenResponse(baseURL, id string) ShortenResponse {
 	return ShortenResponse{Result: strings.TrimRight(baseURL, "/") + "/" + id}
 }
+
+// URLItem представляет сохраненную короткую ссылку.
+type URLItem struct {
+	ID     string `json:"id"`
+	URL    string `json:"url"`
+	Result string `json:"result"`
+}
+
+// NewURLItem собирает элемент списка из базового URL, идентификатора и исходного адреса.
+func NewURLItem(baseURL, id, originalURL string) URLItem {
+	return URLItem{
+		ID:     id,
+		URL:    originalURL,
+		Result: NewShortenResponse(baseURL, id).Result,
+	}
+}

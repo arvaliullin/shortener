@@ -1,6 +1,6 @@
 FROM node:24.22.2-alpine AS builder
 WORKDIR /app
-COPY web/shortener/package.json web/shortener/package-lock.json ./
+COPY web/shortener/package.json web/shortener/package-lock.json web/shortener/.npmrc ./
 RUN npm ci
 COPY web/shortener/ ./
 RUN npm run build

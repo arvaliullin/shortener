@@ -24,6 +24,9 @@ func New(cfg *config.Config, logger zerolog.Logger) http.Handler {
 	urlHandler := handlers.NewURLHandler(svc, cfg.BaseURL)
 
 	router.Post("/api/shorten", urlHandler.Shorten)
+	router.Get("/api/urls", urlHandler.List)
+	router.Put("/api/urls/{id}", urlHandler.Update)
+	router.Delete("/api/urls/{id}", urlHandler.Delete)
 	router.Get("/{id}", urlHandler.Redirect)
 
 	return router

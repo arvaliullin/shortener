@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	domain "github.com/arvaliullin/shortener/internal/core/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -38,6 +39,35 @@ func NewMockURLService(ctrl *gomock.Controller) *MockURLService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockURLService) EXPECT() *MockURLServiceMockRecorder {
 	return m.recorder
+}
+
+// Delete mocks base method.
+func (m *MockURLService) Delete(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockURLServiceMockRecorder) Delete(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockURLService)(nil).Delete), ctx, id)
+}
+
+// List mocks base method.
+func (m *MockURLService) List(ctx context.Context) ([]domain.ShortURL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", ctx)
+	ret0, _ := ret[0].([]domain.ShortURL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockURLServiceMockRecorder) List(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockURLService)(nil).List), ctx)
 }
 
 // Resolve mocks base method.
@@ -68,4 +98,18 @@ func (m *MockURLService) Shorten(ctx context.Context, originalURL string) (strin
 func (mr *MockURLServiceMockRecorder) Shorten(ctx, originalURL any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shorten", reflect.TypeOf((*MockURLService)(nil).Shorten), ctx, originalURL)
+}
+
+// Update mocks base method.
+func (m *MockURLService) Update(ctx context.Context, id, originalURL string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, id, originalURL)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockURLServiceMockRecorder) Update(ctx, id, originalURL any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockURLService)(nil).Update), ctx, id, originalURL)
 }

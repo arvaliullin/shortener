@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	domain "github.com/arvaliullin/shortener/internal/core/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -40,6 +41,20 @@ func (m *MockURLRepository) EXPECT() *MockURLRepositoryMockRecorder {
 	return m.recorder
 }
 
+// Delete mocks base method.
+func (m *MockURLRepository) Delete(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockURLRepositoryMockRecorder) Delete(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockURLRepository)(nil).Delete), ctx, id)
+}
+
 // Find mocks base method.
 func (m *MockURLRepository) Find(ctx context.Context, id string) (string, error) {
 	m.ctrl.T.Helper()
@@ -55,6 +70,21 @@ func (mr *MockURLRepositoryMockRecorder) Find(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockURLRepository)(nil).Find), ctx, id)
 }
 
+// List mocks base method.
+func (m *MockURLRepository) List(ctx context.Context) ([]domain.ShortURL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", ctx)
+	ret0, _ := ret[0].([]domain.ShortURL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockURLRepositoryMockRecorder) List(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockURLRepository)(nil).List), ctx)
+}
+
 // Save mocks base method.
 func (m *MockURLRepository) Save(ctx context.Context, id, originalURL string) error {
 	m.ctrl.T.Helper()
@@ -67,4 +97,18 @@ func (m *MockURLRepository) Save(ctx context.Context, id, originalURL string) er
 func (mr *MockURLRepositoryMockRecorder) Save(ctx, id, originalURL any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockURLRepository)(nil).Save), ctx, id, originalURL)
+}
+
+// Update mocks base method.
+func (m *MockURLRepository) Update(ctx context.Context, id, originalURL string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, id, originalURL)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockURLRepositoryMockRecorder) Update(ctx, id, originalURL any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockURLRepository)(nil).Update), ctx, id, originalURL)
 }
