@@ -41,3 +41,6 @@ __pycache__/
 # Frontend
 web/shortener/node_modules/
 web/shortener/dist/
+
+# Локальные TLS-сертификаты mkcert
+certs/*.pem
