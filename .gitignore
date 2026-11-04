@@ -37,3 +37,7 @@ __pycache__/
 # .vscode/
 .obsidian
 .cursor
+
+# Frontend
+web/shortener/node_modules/
+web/shortener/dist/

@@ -1,0 +1,19 @@
+.shorten-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--g-spacing-6);
+  background: var(--g-color-base-background);
+}
+
+.shorten-page__panel {
+  box-sizing: border-box;
+  width: min(100%, 36rem);
+  padding: var(--g-spacing-6);
+}
+
+.shorten-page__link {
+  overflow-wrap: anywhere;
+}

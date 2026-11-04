@@ -5,6 +5,10 @@ run:
 	set +a && \
 	go run github.com/arvaliullin/shortener/cmd/shortener
 
+.PHONY: web-dev
+web-dev:
+	npm --prefix web/shortener run dev
+
 .PHONY: fmt
 fmt:
 	- go fmt ./...
