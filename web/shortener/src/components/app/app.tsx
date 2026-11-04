@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link as LinkIcon, ListUl, Moon, Plus, Sun } from '@gravity-ui/icons'
 import { AsideHeader } from '@gravity-ui/navigation'
 import { ActionTooltip, Button, Icon, ThemeProvider, useThemeValue, type Theme } from '@gravity-ui/uikit'
 import { Provider } from 'react-redux'
 import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { ensureAuth } from '../../auth'
 import LinksPage from '../../pages/links-page/links-page'
 import ShortenPage from '../../pages/shorten-page/shorten-page'
 import { store } from '../../store'
@@ -85,6 +86,15 @@ function AppLayout({ onThemeChange }: AppLayoutProps) {
 
 export default function App() {
   const [theme, setTheme] = useState<Theme>('system')
+  const [authenticated, setAuthenticated] = useState(false)
+
+  useEffect(() => {
+    ensureAuth().then((ok) => setAuthenticated(ok)).catch(() => setAuthenticated(false))
+  }, [])
+
+  if (!authenticated) {
+    return null
+  }
 
   return (
     <Provider store={store}>

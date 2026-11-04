@@ -1,0 +1,18 @@
+{
+  "files.associations": {
+    "*.puml": "plantuml",
+    "*.plantuml": "plantuml",
+    "*.pu": "plantuml"
+  },
+  "plantuml.render": "Local",
+  "plantuml.java": "/usr/bin/java",
+  "plantuml.jar": "/home/artur/.local/share/plantuml/plantuml.jar",
+  "plantuml.jarArgs": [
+    "-DRELATIVE_INCLUDE=."
+  ],
+  "plantuml.includepaths": [
+    "schemas/c4"
+  ],
+  "plantuml.diagramsRoot": "schemas",
+  "plantuml.exportOutDir": "schemas/images"
+}

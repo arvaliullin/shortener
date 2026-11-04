@@ -14,6 +14,7 @@
     "@gravity-ui/uikit": "^7.42.0",
     "@reduxjs/toolkit": "^2.14.0",
     "axios": "^1.21.0",
+    "keycloak-js": "^26.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-redux": "^9.3.1",

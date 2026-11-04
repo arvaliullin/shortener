@@ -1,0 +1,25 @@
+@startuml system-context
+!RELATIVE_INCLUDE = "."
+!include c4/C4_Context.puml
+
+title Контекстная диаграмма
+
+Person(user, "Пользователь", "Входит в систему и управляет короткими ссылками")
+System_Ext(mcp_client, "MCP-клиент", "Вызывает инструменты управления ссылками")
+Person(visitor, "Посетитель", "Открывает короткую ссылку")
+
+System(shortener, "Shortener", "Создает короткие ссылки, хранит их и перенаправляет посетителей")
+
+System_Ext(target, "Целевой сайт", "Сайт, на который ведет короткая ссылка")
+
+Lay_R(user, visitor)
+Lay_R(visitor, mcp_client)
+Lay_D(visitor, shortener)
+Lay_R(shortener, target)
+
+Rel_D(user, shortener, "Создает, просматривает, изменяет и удаляет ссылки", "HTTPS")
+Rel_D(visitor, shortener, "Открывает короткую ссылку", "HTTPS")
+Rel_D(mcp_client, shortener, "Вызывает инструменты и читает ресурсы", "MCP")
+Rel_R(shortener, target, "Перенаправляет на исходный адрес", "HTTP 307")
+
+@enduml

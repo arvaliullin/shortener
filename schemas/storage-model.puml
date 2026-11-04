@@ -1,0 +1,20 @@
+@startuml storage-model
+
+title Модель хранения ссылок
+
+entity "Ссылка" as link {
+  * id : string <<ключ>>
+  --
+  * original : string
+}
+
+entity "Индекс идентификаторов" as ids {
+  * key : shortener:ids <<ZSET>>
+  --
+  * member : id
+  * score : время создания, мс
+}
+
+ids ||--o{ link : упорядочивает от новых к старым
+
+@enduml

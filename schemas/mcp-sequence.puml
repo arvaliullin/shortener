@@ -1,0 +1,17 @@
+@startuml mcp-sequence
+
+title Вызов инструмента MCP
+
+actor "MCP-клиент" as client
+control "MCP" as mcp
+control "Сервис ссылок" as service
+database "Redis" as redis
+
+client -> mcp: tools/call shorten_url
+mcp -> service: Сократить адрес
+service -> redis: Сохранить адрес и идентификатор
+redis --> service: Сохранено
+service --> mcp: Идентификатор
+mcp --> client: Короткая ссылка
+
+@enduml

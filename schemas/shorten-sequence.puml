@@ -1,0 +1,29 @@
+@startuml shorten-sequence
+
+title Создание короткой ссылки
+
+actor "Пользователь" as user
+boundary "Веб-интерфейс" as web
+control "Keycloak" as keycloak
+control "Аутентификация" as auth
+control "HTTP API" as api
+control "Сервис ссылок" as service
+database "Redis" as redis
+
+user -> web: Открыть интерфейс
+web -> keycloak: Войти, PKCE
+keycloak --> web: Access token
+user -> web: Сократить адрес
+web -> api: POST /api/shorten\nAuthorization: Bearer
+api -> auth: Проверить токен
+auth -> keycloak: Запросить JWKS, если ключа нет в кэше
+keycloak --> auth: RSA-ключи
+auth --> api: Токен действителен
+api -> service: Сократить адрес
+service -> redis: Сохранить адрес и добавить идентификатор в индекс
+redis --> service: Сохранено
+service --> api: Идентификатор
+api --> web: 201, короткая ссылка
+web --> user: Показать короткую ссылку
+
+@enduml

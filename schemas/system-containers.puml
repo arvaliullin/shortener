@@ -1,0 +1,36 @@
+@startuml system-containers
+!RELATIVE_INCLUDE = "."
+!include c4/C4_Container.puml
+
+title Контейнерная диаграмма
+
+Person(user, "Пользователь", "Управляет короткими ссылками")
+Person(visitor, "Посетитель", "Открывает короткую ссылку")
+System_Ext(mcp_client, "MCP-клиент", "Вызывает инструменты и читает ресурсы")
+System_Ext(target, "Целевой сайт", "Исходный адрес короткой ссылки")
+
+System_Boundary(system, "Shortener") {
+  Container(web, "Веб-интерфейс", "React, nginx", "Страницы создания и списка ссылок")
+  Container(keycloak, "Keycloak", "Keycloak", "Выдает access token клиенту shortener-web")
+  Container(api, "Сервис shortener", "Go", "HTTP API, MCP и перенаправление")
+  ContainerDb(redis, "Redis", "Redis", "Хранит адреса и индекс идентификаторов")
+}
+
+Lay_R(user, visitor)
+Lay_D(visitor, web)
+Lay_L(web, mcp_client)
+Lay_R(web, keycloak)
+Lay_D(web, api)
+Lay_R(api, redis)
+Lay_D(api, target)
+
+Rel_D(user, web, "Управляет ссылками", "HTTPS")
+Rel_D(visitor, web, "Открывает короткую ссылку", "HTTPS")
+Rel_R(mcp_client, api, "Вызывает /mcp", "Streamable HTTP")
+Rel_R(web, keycloak, "Проксирует вход", "HTTP")
+Rel_D(web, api, "Проксирует /api и /{id}", "HTTP")
+Rel_U(api, keycloak, "Загружает JWKS", "HTTP")
+Rel_R(api, redis, "Читает и сохраняет")
+Rel_D(api, target, "Возвращает перенаправление", "HTTP 307")
+
+@enduml

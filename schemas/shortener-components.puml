@@ -1,0 +1,43 @@
+@startuml shortener-components
+!RELATIVE_INCLUDE = "."
+!include c4/C4_Component.puml
+
+title Компоненты сервиса shortener
+
+Container(web, "Веб-интерфейс", "nginx", "Проксирует API и короткие ссылки")
+System_Ext(mcp_client, "MCP-клиент", "Вызывает инструменты")
+Container(keycloak, "Keycloak", "OpenID Connect", "Отдает JWKS")
+ContainerDb(redis, "Redis", "Redis", "Хранит ссылки")
+
+Container_Boundary(api, "Сервис shortener") {
+  Component(router, "Маршрутизатор", "chi", "Принимает HTTP-запросы и пишет журнал")
+  Component(auth, "Аутентификация", "middleware", "Проверяет bearer-токен Keycloak")
+  Component(http_api, "HTTP API", "handlers", "Создает, показывает, меняет и удаляет ссылки, перенаправляет посетителя")
+  Component(mcp, "MCP", "Streamable HTTP", "Инструменты и ресурсы коротких ссылок")
+  Component(service, "Сервис ссылок", "core", "Генерирует идентификатор и выполняет операцию")
+  Component(repository, "Репозиторий ссылок", "Redis-клиент", "Сохраняет адрес и индекс идентификаторов")
+}
+
+Lay_R(web, mcp_client)
+Lay_D(web, router)
+Lay_R(router, auth)
+Lay_R(auth, keycloak)
+Lay_D(router, http_api)
+Lay_L(http_api, mcp)
+Lay_D(http_api, service)
+Lay_D(service, repository)
+Lay_D(repository, redis)
+
+Rel_D(web, router, "Передает /api и /{id}")
+Rel_D(mcp_client, router, "Передает /mcp")
+Rel_R(router, auth, "Защищает /api")
+Rel_R(auth, keycloak, "Загружает JWKS")
+Rel_D(auth, http_api, "Пропускает запрос")
+Rel_D(router, http_api, "Отдает переход по ссылке")
+Rel_D(router, mcp, "Отдает /mcp")
+Rel_D(http_api, service, "Вызывает операцию")
+Rel_D(mcp, service, "Вызывает операцию")
+Rel_D(service, repository, "Сохраняет и читает")
+Rel_D(repository, redis, "Читает и записывает")
+
+@enduml

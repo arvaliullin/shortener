@@ -23,11 +23,15 @@ func New(cfg *config.Config, logger zerolog.Logger) http.Handler {
 	repo := redis.NewURLRepository(cfg.RedisAddr)
 	svc := services.NewURLService(repo)
 	urlHandler := handlers.NewURLHandler(svc, cfg.BaseURL)
+	verifier := middleware.NewVerifier(cfg.KeycloakIssuer, cfg.KeycloakJWKSURL, cfg.KeycloakClientID)
 
-	router.Post("/api/shorten", urlHandler.Shorten)
-	router.Get("/api/urls", urlHandler.List)
-	router.Put("/api/urls/{id}", urlHandler.Update)
-	router.Delete("/api/urls/{id}", urlHandler.Delete)
+	router.Group(func(r chi.Router) {
+		r.Use(middleware.Authenticate(verifier))
+		r.Post("/api/shorten", urlHandler.Shorten)
+		r.Get("/api/urls", urlHandler.List)
+		r.Put("/api/urls/{id}", urlHandler.Update)
+		r.Delete("/api/urls/{id}", urlHandler.Delete)
+	})
 	router.Handle("/mcp", mcphandlers.NewURLHandler(svc, cfg.BaseURL))
 	router.Get("/{id}", urlHandler.Redirect)
 

@@ -1,0 +1,22 @@
+@startuml redirect-sequence
+
+title Переход по короткой ссылке
+
+actor "Посетитель" as visitor
+boundary "Веб-интерфейс" as web
+control "HTTP API" as api
+control "Сервис ссылок" as service
+database "Redis" as redis
+entity "Целевой сайт" as target
+
+visitor -> web: GET /{id}
+web -> api: GET /{id}
+api -> service: Найти исходный адрес
+service -> redis: Прочитать адрес по идентификатору
+redis --> service: Исходный адрес
+service --> api: Исходный адрес
+api --> web: 307 Temporary Redirect
+web --> visitor: 307 Temporary Redirect
+visitor -> target: Открыть исходный адрес
+
+@enduml
