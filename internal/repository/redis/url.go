@@ -8,7 +8,10 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 )
 
-const idsKey = "shortener:ids"
+const (
+	idsKey   = "shortener:ids"
+	byURLKey = "shortener:by-url"
+)
 
 type URLRepository struct {
 	client *goredis.Client
@@ -26,6 +29,7 @@ func NewURLRepository(addr string) *URLRepository {
 func (r *URLRepository) Save(ctx context.Context, id, originalURL string) error {
 	_, err := r.client.TxPipelined(ctx, func(pipe goredis.Pipeliner) error {
 		pipe.Set(ctx, id, originalURL, 0)
+		pipe.HSet(ctx, byURLKey, originalURL, id)
 		pipe.ZAdd(ctx, idsKey, goredis.Z{
 			Score:  float64(time.Now().UnixMilli()),
 			Member: id,
@@ -33,6 +37,32 @@ func (r *URLRepository) Save(ctx context.Context, id, originalURL string) error 
 		return nil
 	})
 	return err
+}
+
+// FindByOriginal возвращает идентификатор уже сохраненного адреса.
+func (r *URLRepository) FindByOriginal(ctx context.Context, originalURL string) (string, error) {
+	id, err := r.client.HGet(ctx, byURLKey, originalURL).Result()
+	if err == nil {
+		return id, nil
+	}
+	if err != goredis.Nil {
+		return "", err
+	}
+
+	items, err := r.List(ctx)
+	if err != nil {
+		return "", err
+	}
+	for _, item := range items {
+		if item.Original != originalURL {
+			continue
+		}
+		if err := r.client.HSet(ctx, byURLKey, originalURL, item.ID).Err(); err != nil {
+			return "", err
+		}
+		return item.ID, nil
+	}
+	return "", domain.ErrURLNotFound
 }
 
 // Find ищет оригинальный URL в Redis по ID.
@@ -80,24 +110,61 @@ func (r *URLRepository) List(ctx context.Context) ([]domain.ShortURL, error) {
 
 // Update меняет исходный адрес существующей ссылки.
 func (r *URLRepository) Update(ctx context.Context, id, originalURL string) error {
-	n, err := r.client.Exists(ctx, id).Result()
+	current, err := r.Find(ctx, id)
 	if err != nil {
 		return err
 	}
-	if n == 0 {
-		return domain.ErrURLNotFound
+	if current == originalURL {
+		return nil
 	}
-	return r.client.Set(ctx, id, originalURL, 0).Err()
+
+	ownsIndex, err := r.ownsURL(ctx, current, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.client.TxPipelined(ctx, func(pipe goredis.Pipeliner) error {
+		pipe.Set(ctx, id, originalURL, 0)
+		if ownsIndex {
+			pipe.HDel(ctx, byURLKey, current)
+		}
+		pipe.HSet(ctx, byURLKey, originalURL, id)
+		return nil
+	})
+	return err
 }
 
 // Delete удаляет ссылку и ее идентификатор из индекса.
 func (r *URLRepository) Delete(ctx context.Context, id string) error {
-	deleted, err := r.client.Del(ctx, id).Result()
+	originalURL, err := r.Find(ctx, id)
 	if err != nil {
 		return err
 	}
-	if deleted == 0 {
-		return domain.ErrURLNotFound
+
+	ownsIndex, err := r.ownsURL(ctx, originalURL, id)
+	if err != nil {
+		return err
 	}
-	return r.client.ZRem(ctx, idsKey, id).Err()
+
+	_, err = r.client.TxPipelined(ctx, func(pipe goredis.Pipeliner) error {
+		pipe.Del(ctx, id)
+		pipe.ZRem(ctx, idsKey, id)
+		if ownsIndex {
+			pipe.HDel(ctx, byURLKey, originalURL)
+		}
+		return nil
+	})
+	return err
+}
+
+// ownsURL сообщает, что обратный индекс адреса указывает на этот идентификатор.
+func (r *URLRepository) ownsURL(ctx context.Context, originalURL, id string) (bool, error) {
+	owner, err := r.client.HGet(ctx, byURLKey, originalURL).Result()
+	if err == goredis.Nil {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return owner == id, nil
 }

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"crypto/rand"
+	"errors"
 	"math/big"
 
 	"github.com/arvaliullin/shortener/internal/core/domain"
@@ -24,9 +25,17 @@ func NewURLService(repository ports.URLRepository) *URLService {
 	}
 }
 
-// Shorten генерирует случайный ID для оригинального URL и сохраняет его в Redis
+// Shorten возвращает идентификатор уже сохраненного адреса или создает новый.
 func (service *URLService) Shorten(ctx context.Context, originalURL string) (string, error) {
-	id, err := generateID(idLength)
+	id, err := service.repository.FindByOriginal(ctx, originalURL)
+	if err == nil {
+		return id, nil
+	}
+	if !errors.Is(err, domain.ErrURLNotFound) {
+		return "", err
+	}
+
+	id, err = generateID(idLength)
 	if err != nil {
 		return "", err
 	}
