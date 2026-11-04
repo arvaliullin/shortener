@@ -46,3 +46,6 @@ lint:
 .PHONY: test
 test:
 	- go test ./...
+
+.PHONY: check
+check: generate fmt lint test

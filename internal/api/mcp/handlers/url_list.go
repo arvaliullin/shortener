@@ -17,15 +17,15 @@ func (h *URLHandler) addListTool(server *sdkmcp.Server) {
 }
 
 // list возвращает сохраненные короткие ссылки.
-func (h *URLHandler) list(ctx context.Context, _ *sdkmcp.CallToolRequest, _ dto.ListInput) (*sdkmcp.CallToolResult, []dto.URLItem, error) {
+func (h *URLHandler) list(ctx context.Context, _ *sdkmcp.CallToolRequest, _ dto.ListInput) (*sdkmcp.CallToolResult, dto.ListOutput, error) {
 	stored, err := h.service.List(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, dto.ListOutput{}, err
 	}
 
 	items := make([]dto.URLItem, 0, len(stored))
 	for _, item := range stored {
 		items = append(items, dto.NewURLItem(h.baseURL, item.ID, item.Original))
 	}
-	return nil, items, nil
+	return nil, dto.ListOutput{URLs: items}, nil
 }
