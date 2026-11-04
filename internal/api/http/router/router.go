@@ -5,6 +5,7 @@ import (
 
 	"github.com/arvaliullin/shortener/internal/api/http/handlers"
 	"github.com/arvaliullin/shortener/internal/api/http/middleware"
+	mcphandlers "github.com/arvaliullin/shortener/internal/api/mcp/handlers"
 	"github.com/arvaliullin/shortener/internal/config"
 	"github.com/arvaliullin/shortener/internal/core/services"
 	"github.com/arvaliullin/shortener/internal/repository/redis"
@@ -27,6 +28,7 @@ func New(cfg *config.Config, logger zerolog.Logger) http.Handler {
 	router.Get("/api/urls", urlHandler.List)
 	router.Put("/api/urls/{id}", urlHandler.Update)
 	router.Delete("/api/urls/{id}", urlHandler.Delete)
+	router.Handle("/mcp", mcphandlers.NewURLHandler(svc, cfg.BaseURL))
 	router.Get("/{id}", urlHandler.Redirect)
 
 	return router
