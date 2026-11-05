@@ -1,63 +1,114 @@
 import { useRef, useState } from 'react'
-import { ChatContainer, type TChatMessage, type TSubmitData } from '@gravity-ui/aikit'
-import { chatTurns, sendChat } from '../../api/chat'
+import { ChatContainer, type ChatStatus, type TChatMessage, type TSubmitData } from '@gravity-ui/aikit'
+import { chatTurns, isChatCanceled, sendChat } from '../../api/chat'
 import './chat-page.css'
 
-// Страница чата. Сообщение и история уходят агенту.
+// Страница чата. Пока агент отвечает, список показывает ожидание.
 export default function ChatPage() {
   const [messages, setMessages] = useState<TChatMessage[]>([])
+  const [status, setStatus] = useState<ChatStatus>('ready')
   const generation = useRef(0)
+  const request = useRef<AbortController | null>(null)
 
-  // Отправляет историю и добавляет ответ агента.
-  async function sendMessage(data: TSubmitData) {
+  // stopRequest прерывает текущий запрос к агенту.
+  function stopRequest() {
+    request.current?.abort()
+    request.current = null
+  }
+
+  // requestReply запрашивает ответ по уже собранной истории.
+  async function requestReply(history: TChatMessage[]) {
     const currentGeneration = generation.current
-    const timestamp = new Date().toISOString()
-    const userMessage: TChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: data.content,
-      timestamp,
-    }
-    const history = [...messages, userMessage]
-    setMessages(history)
+    stopRequest()
+    const controller = new AbortController()
+    request.current = controller
+    setStatus('streaming_loading')
 
-    let content = 'Не удалось получить ответ'
     try {
-      content = await sendChat(chatTurns(history))
-    } catch {
-      content = 'Не удалось получить ответ'
+      const content = await sendChat(chatTurns(history), controller.signal)
+      if (currentGeneration !== generation.current) {
+        return
+      }
+      setMessages((current) => [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content,
+          timestamp: new Date().toISOString(),
+        },
+      ])
+      setStatus('ready')
+    } catch (error) {
+      if (currentGeneration !== generation.current || isChatCanceled(error)) {
+        return
+      }
+      setStatus('error')
+    } finally {
+      if (request.current === controller) {
+        request.current = null
+      }
     }
-    if (currentGeneration !== generation.current) {
-      return
-    }
+  }
 
-    setMessages((current) => [
-      ...current,
+  // sendMessage добавляет реплику пользователя и ждет ответ.
+  async function sendMessage(data: TSubmitData) {
+    const history = [
+      ...messages,
       {
         id: crypto.randomUUID(),
-        role: 'assistant',
-        content,
+        role: 'user' as const,
+        content: data.content,
         timestamp: new Date().toISOString(),
       },
-    ])
+    ]
+    setMessages(history)
+    await requestReply(history)
+  }
+
+  // retry повторяет последний запрос без новой реплики пользователя.
+  async function retry() {
+    await requestReply(messages)
+  }
+
+  // cancel останавливает ожидание и возвращает поле ввода.
+  async function cancel() {
+    stopRequest()
+    setStatus('ready')
+  }
+
+  // createChat сбрасывает диалог и текущий запрос.
+  function createChat() {
+    generation.current += 1
+    stopRequest()
+    setMessages([])
+    setStatus('ready')
   }
 
   return (
     <main className="chat-page">
       <ChatContainer
         messages={messages}
+        status={status}
         onSendMessage={sendMessage}
-        onCreateChat={() => {
-          generation.current += 1
-          setMessages([])
+        onCancel={cancel}
+        onRetry={() => {
+          void retry()
         }}
+        onCreateChat={createChat}
         showHistory={false}
         showNewChat
+        messageListConfig={{
+          loaderMessage: 'Готовлю ответ. Это может занять минуту.',
+        }}
         texts={{
           headerTitle: 'Чат',
           emptyStateTitle: 'Чат',
           emptyStateDescription: 'Спросите про ссылки или попросите создать короткую',
           promptPlaceholder: 'Сообщение',
+          submitButtonCancelableText: 'Остановить',
+          submitCancelTooltip: 'Остановить',
+          errorText: 'Не удалось получить ответ. Попробуйте ещё раз.',
         }}
       />
     </main>
