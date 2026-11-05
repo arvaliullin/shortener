@@ -1,0 +1,40 @@
+@startuml chat-sequence
+
+title Диалог чата
+
+actor "Пользователь" as user
+boundary "Веб-интерфейс" as web
+control "Keycloak" as keycloak
+control "HTTP чата" as chat
+control "Цикл агента" as loop
+control "Ollama" as ollama
+control "MCP" as mcp
+control "Сервис ссылок" as service
+database "Redis" as redis
+
+user -> web: Написать сообщение
+web -> chat: POST /api/chat\nAuthorization: Bearer
+chat -> keycloak: Запросить JWKS, если ключа нет в кэше
+keycloak --> chat: RSA-ключи
+chat -> loop: История и сообщение
+loop -> ollama: Запросить ответ с инструментами
+
+alt Модель вызвала инструмент
+  ollama --> loop: Вызов инструмента
+  loop -> mcp: tools/call
+  mcp -> service: Выполнить операцию
+  service -> redis: Прочитать или сохранить
+  redis --> service: Результат
+  service --> mcp: Результат
+  mcp --> loop: Результат инструмента
+  loop -> ollama: Результат инструмента
+  ollama --> loop: Текст ответа
+else Модель ответила текстом
+  ollama --> loop: Текст ответа
+end
+
+loop --> chat: Текст ответа
+chat --> web: Текст ответа
+web --> user: Показать ответ
+
+@enduml

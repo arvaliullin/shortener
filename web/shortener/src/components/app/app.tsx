@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link as LinkIcon, ListUl, Moon, Plus, Sun } from '@gravity-ui/icons'
+import { FaceRobot, Link as LinkIcon, ListUl, Moon, Plus, Sun } from '@gravity-ui/icons'
 import { AsideHeader } from '@gravity-ui/navigation'
 import { ActionTooltip, Button, Icon, ThemeProvider, useThemeValue, type Theme } from '@gravity-ui/uikit'
 import { Provider } from 'react-redux'
 import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { ensureAuth } from '../../auth'
+import ChatPage from '../../pages/chat-page/chat-page'
 import LinksPage from '../../pages/links-page/links-page'
 import ShortenPage from '../../pages/shorten-page/shorten-page'
 import { store } from '../../store'
@@ -56,12 +57,21 @@ function AppLayout({ onThemeChange }: AppLayoutProps) {
           enableTooltip: true,
           onItemClick: () => navigate('/links'),
         },
+        {
+          id: 'chat',
+          title: 'Чат',
+          icon: FaceRobot,
+          current: location.pathname === '/chat',
+          enableTooltip: true,
+          onItemClick: () => navigate('/chat'),
+        },
       ]}
       renderContent={() => (
         <div className="app__content">
           <Routes>
             <Route path="/" element={<ShortenPage />} />
             <Route path="/links" element={<LinksPage />} />
+            <Route path="/chat" element={<ChatPage />} />
           </Routes>
         </div>
       )}

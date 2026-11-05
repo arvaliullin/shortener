@@ -1,0 +1,35 @@
+@startuml agent-components
+!RELATIVE_INCLUDE = "."
+!include c4/C4_Component.puml
+
+title Компоненты агента
+
+Container(web, "Веб-интерфейс", "nginx", "Проксирует POST /api/chat")
+Container(keycloak, "Keycloak", "OpenID Connect", "Отдает JWKS")
+Container(api, "Сервис shortener", "Go", "Отдает MCP")
+System_Ext(ollama, "Ollama", "Модель qwen2.5:1.5b")
+
+Container_Boundary(agent, "Агент") {
+  Component(chat_http, "HTTP чата", "HTTP", "Принимает POST /api/chat и проверяет bearer-токен")
+  Component(loop, "Цикл агента", "Go", "Держит историю, повторяет запрос до текста и вызывает delete_url и update_url только по прямой просьбе")
+  Component(openai, "Клиент OpenAI", "OpenAI API", "Отправляет сообщения и инструменты в Ollama")
+  Component(mcp_client, "MCP-клиент", "Streamable HTTP", "Читает tools/list и выполняет tools/call")
+}
+
+Lay_D(web, chat_http)
+Lay_R(chat_http, keycloak)
+Lay_D(chat_http, loop)
+Lay_R(loop, openai)
+Lay_R(openai, ollama)
+Lay_D(loop, mcp_client)
+Lay_R(mcp_client, api)
+
+Rel_D(web, chat_http, "Передает POST /api/chat")
+Rel_R(chat_http, keycloak, "Загружает JWKS")
+Rel_D(chat_http, loop, "Передает историю")
+Rel_R(loop, openai, "Запрашивает ответ с инструментами")
+Rel_R(openai, ollama, "OpenAI API, qwen2.5:1.5b")
+Rel_D(loop, mcp_client, "Выполняет tools/call")
+Rel_D(mcp_client, api, "Вызывает /mcp")
+
+@enduml

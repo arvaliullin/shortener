@@ -11,6 +11,13 @@ run: ## Запустить API-сервер
 	set +a && \
 	go run github.com/arvaliullin/shortener/cmd/shortener
 
+.PHONY: agent
+agent: ## Запустить агента
+	set -a && \
+	. ./.env && \
+	set +a && \
+	go run github.com/arvaliullin/shortener/cmd/agent
+
 .PHONY: web-install
 web-install: ## Установить зависимости фронтенда
 	npm --prefix web/shortener ci
@@ -61,8 +68,8 @@ ps: ## Показать контейнеры стека
 	docker compose -f deployments/docker-compose.yaml ps --orphans=false
 
 .PHONY: logs
-logs: ## Показать журналы web и shortener
-	docker compose -f deployments/docker-compose.yaml logs -f web shortener
+logs: ## Показать журналы web, shortener и agent
+	docker compose -f deployments/docker-compose.yaml logs -f web shortener agent
 
 .PHONY: lint
 lint: ## Проверить Go-код линтером

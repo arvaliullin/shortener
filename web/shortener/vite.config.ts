@@ -10,6 +10,12 @@ export default defineConfig(({ command }) => ({
       key: fs.readFileSync(new URL('../../certs/localhost-key.pem', import.meta.url)),
     } : undefined,
     proxy: {
+      // /api/chat идет в агента и должен стоять раньше общего /api.
+      '/api/chat': {
+        target: 'http://localhost:8090',
+        timeout: 180000,
+        proxyTimeout: 180000,
+      },
       '/api': 'http://localhost:8080',
       '^/[A-Za-z0-9]{8}$': 'http://localhost:8080',
     },

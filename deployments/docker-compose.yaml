@@ -39,6 +39,55 @@ services:
       retries: 5
     restart: unless-stopped
 
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  agent:
+    build:
+      context: ..
+      dockerfile: build/agent.Dockerfile
+    container_name: shortener-agent
+    environment:
+      AGENT_ADDRESS: :8090
+      OLLAMA_BASE_URL: http://ollama:11434/v1
+      OLLAMA_MODEL: qwen2.5:1.5b
+      MCP_URL: http://shortener:8080/mcp
+      KEYCLOAK_ISSUER: https://localhost:8443/realms/shortener
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/shortener/protocol/openid-connect/certs
+      KEYCLOAK_CLIENT_ID: shortener-web
+    depends_on:
+      ollama:
+        condition: service_healthy
+      shortener:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8090/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   web:
     build:
       context: ..
@@ -50,6 +99,8 @@ services:
       - ../certs:/etc/nginx/certs:ro
     depends_on:
       shortener:
+        condition: service_healthy
+      agent:
         condition: service_healthy
       keycloak:
         condition: service_started
@@ -74,3 +125,6 @@ services:
 
 volumes:
   redis-data:
+  ollama:
+    name: ollama
+    external: true

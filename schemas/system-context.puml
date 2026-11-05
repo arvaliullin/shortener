@@ -4,22 +4,25 @@
 
 title Контекстная диаграмма
 
-Person(user, "Пользователь", "Входит в систему и управляет короткими ссылками")
+Person(user, "Пользователь", "Входит в систему, управляет короткими ссылками и пишет в чат")
 System_Ext(mcp_client, "MCP-клиент", "Вызывает инструменты управления ссылками")
 Person(visitor, "Посетитель", "Открывает короткую ссылку")
 
-System(shortener, "Shortener", "Создает короткие ссылки, хранит их и перенаправляет посетителей")
+System(shortener, "Shortener", "Создает короткие ссылки, хранит их и отвечает в чате через локальную модель")
 
 System_Ext(target, "Целевой сайт", "Сайт, на который ведет короткая ссылка")
+System_Ext(ollama, "Ollama", "Локальная модель qwen2.5:1.5b")
 
 Lay_R(user, visitor)
 Lay_R(visitor, mcp_client)
 Lay_D(visitor, shortener)
 Lay_R(shortener, target)
+Lay_D(shortener, ollama)
 
-Rel_D(user, shortener, "Создает, просматривает, изменяет и удаляет ссылки", "HTTPS")
+Rel_D(user, shortener, "Создает, просматривает, изменяет и удаляет ссылки, пишет в чат", "HTTPS")
 Rel_D(visitor, shortener, "Открывает короткую ссылку", "HTTPS")
 Rel_D(mcp_client, shortener, "Вызывает инструменты и читает ресурсы", "MCP")
 Rel_R(shortener, target, "Перенаправляет на исходный адрес", "HTTP 307")
+Rel_D(shortener, ollama, "Запрашивает ответ модели", "OpenAI API")
 
 @enduml
