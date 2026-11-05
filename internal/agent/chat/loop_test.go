@@ -96,6 +96,21 @@ func TestReplyAllowsDeleteWhenAsked(t *testing.T) {
 	require.Equal(t, [][]string{{"delete_url"}, {"delete_url"}}, model.seen)
 }
 
+func TestReplyReadsFunctionNameMarkup(t *testing.T) {
+	t.Parallel()
+
+	model := &scriptedModel{steps: []Completion{
+		{Content: "<function_name>list_urls</function_name>"},
+		{Content: "в сервисе 2 ссылки"},
+	}}
+	tools := &fakeTools{tools: []Tool{{Name: "list_urls"}}}
+	reply, err := NewLoop(model, tools).Reply(context.Background(), []Message{{Role: "user", Content: "сколько ссылок"}})
+
+	require.NoError(t, err)
+	require.Equal(t, "в сервисе 2 ссылки", reply)
+	require.Equal(t, []string{"list_urls"}, tools.called)
+}
+
 func TestReplyRejectsEmptyCompletion(t *testing.T) {
 	t.Parallel()
 

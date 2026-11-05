@@ -46,6 +46,8 @@ services:
       - "11434:11434"
     volumes:
       - ollama:/root/.ollama
+    environment:
+      OLLAMA_KEEP_ALIVE: "-1"
     deploy:
       resources:
         reservations:
@@ -66,10 +68,12 @@ services:
       context: ..
       dockerfile: build/agent.Dockerfile
     container_name: shortener-agent
+    ports:
+      - "8090:8090"
     environment:
       AGENT_ADDRESS: :8090
       OLLAMA_BASE_URL: http://ollama:11434/v1
-      OLLAMA_MODEL: qwen2.5:1.5b
+      OLLAMA_MODEL: qwen2.5:3b
       MCP_URL: http://shortener:8080/mcp
       KEYCLOAK_ISSUER: https://localhost:8443/realms/shortener
       KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/shortener/protocol/openid-connect/certs

@@ -13,6 +13,8 @@ const (
 
 	systemPrompt = "Ты помощник сервиса коротких ссылок и отвечаешь по-русски. " +
 		"Для ссылок вызывай инструменты и не выдумывай адреса. " +
+		"Число ссылок бери из count после вызова list_urls. " +
+		"Разметку вызова в ответ пользователю не пиши. " +
 		"delete_url и update_url вызывай только когда пользователь прямо просит удалить или изменить ссылку."
 )
 
@@ -49,19 +51,24 @@ func (l *Loop) Reply(ctx context.Context, history []Message) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("complete: %w", err)
 		}
-		if len(completion.ToolCalls) == 0 {
-			if strings.TrimSpace(completion.Content) == "" {
+		calls := completion.ToolCalls
+		content := completion.Content
+		if len(calls) == 0 {
+			calls, content = toolCallsFromContent(content, offered)
+		}
+		if len(calls) == 0 {
+			if strings.TrimSpace(content) == "" {
 				return "", errEmptyResponse
 			}
-			return completion.Content, nil
+			return content, nil
 		}
 
 		messages = append(messages, Message{
 			Role:      "assistant",
-			Content:   completion.Content,
-			ToolCalls: completion.ToolCalls,
+			Content:   content,
+			ToolCalls: calls,
 		})
-		for _, call := range completion.ToolCalls {
+		for _, call := range calls {
 			messages = append(messages, Message{
 				Role:       "tool",
 				Name:       call.Name,

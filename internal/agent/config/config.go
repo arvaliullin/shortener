@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Address          string `envconfig:"AGENT_ADDRESS" default:":8090"`
 	OllamaBaseURL    string `envconfig:"OLLAMA_BASE_URL" default:"http://127.0.0.1:11434/v1"`
-	OllamaModel      string `envconfig:"OLLAMA_MODEL" default:"qwen2.5:1.5b"`
+	OllamaModel      string `envconfig:"OLLAMA_MODEL" default:"qwen2.5:3b"`
 	MCPURL           string `envconfig:"MCP_URL" default:"http://127.0.0.1:8080/mcp"`
 	KeycloakIssuer   string `envconfig:"KEYCLOAK_ISSUER" default:"https://localhost:8443/realms/shortener"`
 	KeycloakJWKSURL  string `envconfig:"KEYCLOAK_JWKS_URL" default:"http://127.0.0.1:8082/realms/shortener/protocol/openid-connect/certs"`

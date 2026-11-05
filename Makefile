@@ -30,6 +30,12 @@ web-dev: certs web-install ## Запустить фронтенд по HTTPS
 sync: ## Установить зависимости Python
 	uv sync
 
+COUNT ?= 100
+
+.PHONY: seed
+seed: ## Добавить тестовые короткие ссылки
+	uv run python scripts/shortener/main.py --count $(COUNT)
+
 .PHONY: fmt
 fmt: ## Отформатировать Go-код
 	- go fmt ./...

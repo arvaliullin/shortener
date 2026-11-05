@@ -49,7 +49,7 @@ func toolText(result *sdkmcp.CallToolResult) string {
 	if result.StructuredContent != nil {
 		body, err := json.Marshal(result.StructuredContent)
 		if err == nil {
-			return string(body)
+			return briefURLList(string(body))
 		}
 	}
 
@@ -60,5 +60,5 @@ func toolText(result *sdkmcp.CallToolResult) string {
 			parts = append(parts, text.Text)
 		}
 	}
-	return strings.Join(parts, "\n")
+	return briefURLList(strings.Join(parts, "\n"))
 }

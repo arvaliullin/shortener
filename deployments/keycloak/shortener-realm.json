@@ -67,6 +67,10 @@
   "users": [
     {
       "username": "user",
+      "email": "user@localhost",
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Local",
       "enabled": true,
       "credentials": [
         {
